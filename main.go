@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func readWords() []int {
@@ -169,6 +170,146 @@ func d3_2() {
 	log.Println(prod)
 }
 
+func d4_1() {
+	words := readStrings()
+	mustHaveFields := map[string]int{
+		"byr": 1,
+		"iyr": 1,
+		"eyr": 1,
+		"hgt": 1,
+		"hcl": 1,
+		"ecl": 1,
+		"pid": 1,
+	}
+
+	count := 0
+
+	for i := 0; i < len(words); i++ {
+		l := ""
+		for ; i < len(words) && len(words[i]) != 0; i++ {
+			l = l + words[i] + " "
+		}
+
+		runes := []rune(l)
+
+		ic := 0
+		for len(runes) > 0 {
+			var k string
+			fmt.Sscanf(string(runes), "%s", &k)
+			s := strings.Split(k, ":")[0]
+			if mustHaveFields[s] == 1 {
+				ic++
+			}
+			runes = runes[len(k)+1:]
+		}
+		if ic == 7 {
+			count++
+		}
+	}
+
+	log.Print(count)
+}
+
+func d4_2() {
+	words := readStrings()
+	mustHaveFields := map[string]interface{}{
+		"byr": func(s string) bool {
+			i, e := strconv.Atoi(s)
+			return e == nil && i >= 1920 && i <= 2002
+		},
+		"iyr": func(s string) bool {
+			i, e := strconv.Atoi(s)
+			return e == nil && i >= 2010 && i <= 2020
+		},
+		"eyr": func(s string) bool {
+			i, e := strconv.Atoi(s)
+			return e == nil && i >= 2020 && i <= 2030
+		},
+		"hgt": func(s string) bool {
+			i, e := strconv.Atoi(s[:len(s)-2])
+			if e != nil {
+				return false
+			}
+			if s[len(s)-2:] == "cm" {
+				return i >= 150 && i <= 193
+			}
+			if s[len(s)-2:] == "in" {
+				return i >= 59 && i <= 76
+			}
+			return false
+		},
+		"hcl": func(s string) bool {
+			if s[0] != '#' || len(s) != 7 {
+				return false
+			}
+			for i := 1; i <= 6; i++ {
+				if s[i] >= '0' && s[i] <= '9' {
+					continue
+				}
+				if s[i] >= 'a' && s[i] <= 'f' {
+					continue
+				}
+				return false
+			}
+
+			return true
+		},
+		"ecl": func(s string) bool {
+			avail := []string{"amb", "blu", "brn", "gry", "grn", "hzl", "oth"}
+			for _, t := range avail {
+				if t == s {
+					return true
+				}
+			}
+
+			return false
+		},
+		"pid": func(s string) bool {
+			if len(s) != 9 {
+				return false
+			}
+
+			for _, t := range s {
+				if t >= '0' && t <= '9' {
+					continue
+				}
+				return false
+			}
+
+			return true
+		},
+	}
+
+	count := 0
+
+	for i := 0; i < len(words); i++ {
+		l := ""
+		for ; i < len(words) && len(words[i]) != 0; i++ {
+			l = l + words[i] + " "
+		}
+
+		runes := []rune(l)
+
+		ic := 0
+		for len(runes) > 0 {
+			var k string
+			fmt.Sscanf(string(runes), "%s", &k)
+			s := strings.Split(k, ":")
+			if _, ok := mustHaveFields[s[0]]; ok == true {
+				if mustHaveFields[s[0]].(func(string) bool)(s[1]) == true {
+					ic++
+				}
+			}
+			runes = runes[len(k)+1:]
+		}
+		if ic == 7 {
+			count++
+		}
+	}
+
+	log.Print(count)
+}
+
 func main() {
-	d3_1()
+	d4_2()
 }
