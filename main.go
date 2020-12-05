@@ -212,7 +212,7 @@ func d4_1() {
 
 func d4_2() {
 	words := readStrings()
-	mustHaveFields := map[string]interface{}{
+	mustHaveFields := map[string](func(string) bool){
 		"byr": func(s string) bool {
 			i, e := strconv.Atoi(s)
 			return e == nil && i >= 1920 && i <= 2002
@@ -296,7 +296,7 @@ func d4_2() {
 			fmt.Sscanf(string(runes), "%s", &k)
 			s := strings.Split(k, ":")
 			if _, ok := mustHaveFields[s[0]]; ok == true {
-				if mustHaveFields[s[0]].(func(string) bool)(s[1]) == true {
+				if mustHaveFields[s[0]](s[1]) == true {
 					ic++
 				}
 			}
@@ -310,6 +310,71 @@ func d4_2() {
 	log.Print(count)
 }
 
+func pow(x int64, y int) int64 {
+	var r int64 = 1
+	for i := 0; i < y; i++ {
+		r *= x
+	}
+
+	return r
+}
+
+func d5_1() {
+	words := readStrings()
+	h := 0
+	for _, w := range words {
+		a := 0
+		for i := 0; i < 7; i++ {
+			if w[i] == 'B' {
+				a += int(pow(2, 7-i-1))
+			}
+		}
+		b := 0
+		for i := 0; i < 3; i++ {
+			if w[i+7] == 'R' {
+				b += int(pow(2, 3-i-1))
+			}
+		}
+		r := a*8 + b
+		if r > h {
+			h = r
+		}
+	}
+
+	log.Print(h)
+}
+
+func d5_2() {
+	words := readStrings()
+	M := make(map[int]bool)
+	for _, w := range words {
+		a := 0
+		for i := 0; i < 7; i++ {
+			if w[i] == 'B' {
+				a += int(pow(2, 7-i-1))
+			}
+		}
+		b := 0
+		for i := 0; i < 3; i++ {
+			if w[i+7] == 'R' {
+				b += int(pow(2, 3-i-1))
+			}
+		}
+		r := a*8 + b
+		M[r] = true
+	}
+
+	for i := 1; i < 947; i++ {
+		_, o1 := M[i-1]
+		_, o2 := M[i]
+		_, o3 := M[i+1]
+
+		if o1 && !o2 && o3 {
+			log.Print(i)
+		}
+	}
+}
+
 func main() {
-	d4_2()
+	d5_2()
 }
