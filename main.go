@@ -375,6 +375,49 @@ func d5_2() {
 	}
 }
 
+func d6_1() {
+	words := readStrings()
+	result := 0
+	for i := 0; i < len(words); i++ {
+		m := make(map[rune]bool)
+		for ; i < len(words) && len(words[i]) > 0; i++ {
+			for _, k := range words[i] {
+				m[k] = true
+			}
+		}
+		for i := 'a'; i <= 'z'; i++ {
+			if _, ok := m[i]; ok {
+				result++
+			}
+		}
+	}
+	log.Print(result)
+}
+
+func d6_2() {
+	words := readStrings()
+	result := 0
+	for i := 0; i < len(words); i++ {
+		m := make(map[rune]int)
+		c := 0
+		for ; i < len(words) && len(words[i]) > 0; i++ {
+			for _, k := range words[i] {
+				if _, ok := m[k]; !ok {
+					m[k] = 0
+				}
+				m[k]++
+			}
+			c++
+		}
+		for i := 'a'; i <= 'z'; i++ {
+			if m[i] == c {
+				result++
+			}
+		}
+	}
+	log.Print(result)
+}
+
 func main() {
-	d5_2()
+	d6_2()
 }
