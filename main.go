@@ -418,6 +418,108 @@ func d6_2() {
 	log.Print(result)
 }
 
+type d7struct struct {
+	count int
+	bag   string
+}
+
+func d7checkCanContain(M map[string][]d7struct, b string) bool {
+	for _, val := range M[b] {
+		if val.bag == "shiny gold" {
+			return true
+		}
+		if d7checkCanContain(M, val.bag) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func d7_1() {
+	wordsArray := readStrings()
+
+	srcToContent := make(map[string][]d7struct)
+	dstToParent := make(map[string][]string)
+
+	for _, words := range wordsArray {
+		fields := strings.Fields(words)
+		src := fields[0] + " " + fields[1]
+		if _, ok := srcToContent[src]; !ok {
+			srcToContent[src] = []d7struct{}
+		}
+
+		for i := 4; i < len(fields); {
+			if fields[i] == "no" {
+				break
+			}
+			n, e := strconv.Atoi(fields[i])
+			if e != nil {
+				log.Fatalf("FAILED PARSING %v", fields[i])
+			}
+			dst := fields[i+1] + " " + fields[i+2]
+			srcToContent[src] = append(srcToContent[src], d7struct{n, dst})
+			if _, ok := dstToParent[dst]; !ok {
+				dstToParent[dst] = []string{}
+			}
+			dstToParent[dst] = append(dstToParent[dst], src)
+			i += 4
+		}
+	}
+
+	result := 0
+	for k := range srcToContent {
+		if d7checkCanContain(srcToContent, k) {
+			result++
+		}
+	}
+
+	log.Print(result)
+}
+
+func d7countBagsInside(M map[string][]d7struct, b string) int64 {
+	var c int64 = 0
+	for _, v := range M[b] {
+		c += int64(v.count) + int64(v.count)*(d7countBagsInside(M, v.bag))
+	}
+	return c
+}
+
+func d7_2() {
+	wordsArray := readStrings()
+
+	srcToContent := make(map[string][]d7struct)
+	dstToParent := make(map[string][]string)
+
+	for _, words := range wordsArray {
+		fields := strings.Fields(words)
+		src := fields[0] + " " + fields[1]
+		if _, ok := srcToContent[src]; !ok {
+			srcToContent[src] = []d7struct{}
+		}
+
+		for i := 4; i < len(fields); {
+			if fields[i] == "no" {
+				break
+			}
+			n, e := strconv.Atoi(fields[i])
+			if e != nil {
+				log.Fatalf("FAILED PARSING %v", fields[i])
+			}
+			dst := fields[i+1] + " " + fields[i+2]
+			srcToContent[src] = append(srcToContent[src], d7struct{n, dst})
+			if _, ok := dstToParent[dst]; !ok {
+				dstToParent[dst] = []string{}
+			}
+			dstToParent[dst] = append(dstToParent[dst], src)
+			i += 4
+		}
+	}
+
+	log.Print(d7countBagsInside(srcToContent, "shiny gold"))
+
+}
+
 func main() {
-	d6_2()
+	d7_2()
 }
