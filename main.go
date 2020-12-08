@@ -517,9 +517,121 @@ func d7_2() {
 	}
 
 	log.Print(d7countBagsInside(srcToContent, "shiny gold"))
+}
 
+func d8_1() {
+	words := readStrings()
+	M := make(map[int]bool)
+	acc := 0
+	i := 0
+	for {
+		instr := words[i][:3]
+		n, e := strconv.Atoi(words[i][4:])
+		if e != nil {
+			log.Fatal("Failed parsing")
+		}
+		if _, ok := M[i]; ok {
+			log.Print(acc)
+			return
+		}
+		M[i] = true
+
+		if instr == "nop" {
+			i++
+		} else if instr == "acc" {
+			acc = acc + n
+			i++
+		} else {
+			i = i + n
+		}
+	}
+}
+
+func d8terminates(words []string, M map[int]int, i int, acc int) int {
+	for {
+		if i == len(words) {
+			return acc
+		}
+		instr := words[i][:3]
+		n, e := strconv.Atoi(words[i][4:])
+		if e != nil {
+			log.Fatal("Failed parsing")
+		}
+
+		if v, ok := M[i]; ok || v == -2 {
+			return -1
+		}
+
+		M[i] = -2 // Meaning that originally we cannot reach it, but if we somehow do, it's a dead end
+
+		if instr == "nop" {
+			i++
+		} else if instr == "acc" {
+			acc = acc + n
+			i++
+		} else {
+			i = i + n
+		}
+	}
+}
+
+func d8_2() {
+	words := readStrings()
+	M := make(map[int]int)
+	acc := 0
+	i := 0
+	for {
+		instr := words[i][:3]
+		n, e := strconv.Atoi(words[i][4:])
+		if e != nil {
+			log.Fatal("Failed parsing")
+		}
+		if _, ok := M[i]; ok {
+			break
+		}
+		M[i] = acc
+
+		if instr == "nop" {
+			i++
+		} else if instr == "acc" {
+			acc = acc + n
+			i++
+		} else {
+			i = i + n
+		}
+	}
+
+	// In each M[i] we have acc at that day.
+	for i := range words {
+		if v, ok := M[i]; !ok || v == -2 {
+			continue
+		}
+		instr := words[i][:3]
+		n, e := strconv.Atoi(words[i][4:])
+		if e != nil {
+			log.Fatal("Failed parsing")
+		}
+		if instr == "acc" {
+			continue
+		} else {
+			j := 0
+			if instr == "nop" {
+				// try jumping
+				j = i + n
+			} else {
+				// do nop instead jump
+				j = i + 1
+			}
+
+			if v := d8terminates(words, M, j, M[i]); v >= 0 {
+				log.Print(v)
+				return
+			}
+		}
+
+	}
 }
 
 func main() {
-	d7_2()
+	d8_2()
 }
