@@ -632,6 +632,90 @@ func d8_2() {
 	}
 }
 
+func d9_1() {
+	words := readWords()
+	preamble := 25
+	for i := preamble; i < len(words); i++ {
+		M := make(map[int]bool)
+		found := false
+		s := words[i]
+		for j := i - preamble; j < i; j++ {
+			if _, ok := M[s-words[j]]; ok {
+				found = true
+				break
+			}
+			M[words[j]] = true
+		}
+
+		if !found {
+			log.Print(words[i])
+		}
+	}
+}
+
+func d9find(words []int) int {
+	preamble := 25
+	for i := preamble; i < len(words); i++ {
+		M := make(map[int]bool)
+		found := false
+		s := words[i]
+		for j := i - preamble; j < i; j++ {
+			if _, ok := M[s-words[j]]; ok {
+				found = true
+				break
+			}
+			M[words[j]] = true
+		}
+
+		if !found {
+			return words[i]
+		}
+	}
+
+	return -1
+}
+
+func d9Min(r []int) int {
+	m := r[0]
+	for _, s := range r {
+		if s < m {
+			m = s
+		}
+	}
+	return m
+}
+
+func d9Max(r []int) int {
+	m := r[0]
+	for _, s := range r {
+		if s > m {
+			m = s
+		}
+	}
+	return m
+}
+
+func d9_2() {
+	words := readWords()
+	found := d9find(words)
+	i := 0
+	j := 0
+	sum := words[0]
+	for {
+		if sum == found {
+			print(d9Min(words[i:j+1]) + d9Max(words[i:j+1]))
+			return
+		} else if sum < found {
+			j++
+			sum = sum + words[j]
+		} else if sum > found {
+			sum = sum - words[i]
+			i++
+		}
+	}
+
+}
+
 func main() {
-	d8_2()
+	d9_2()
 }
