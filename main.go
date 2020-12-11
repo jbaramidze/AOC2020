@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -713,9 +714,166 @@ func d9_2() {
 			i++
 		}
 	}
+}
 
+func d10_1() {
+	words := readWords()
+	sort.Ints(words)
+	d := make([]int, 4)
+	last := 0
+	for _, w := range words {
+		d[w-last]++
+		last = w
+	}
+
+	log.Print(d[1], d[2], d[3]+1)
+}
+
+//
+func d10_2() {
+	words := readWords()
+	sort.Ints(words)
+	till := words[len(words)-1]
+	d := make([]int, till+10)
+	d[0] = 1
+	for _, w := range words {
+		for i := w - 3; i < w; i++ {
+			if i >= 0 {
+				d[w] += d[i]
+			}
+		}
+	}
+
+	log.Print(d[till])
+}
+
+func d11Adj(w [][]rune, x, y int) int {
+	c := 0
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			if x+i < 0 || x+i >= len(w[0]) ||
+				y+j < 0 || y+j >= len(w) ||
+				(i == 0 && j == 0) {
+				continue
+			}
+
+			if w[j+y][x+i] == '#' {
+				c++
+			}
+		}
+	}
+	return c
+}
+
+func d11_1() {
+	strings := readStrings()
+	words := make([][]rune, 0)
+	for _, s := range strings {
+		words = append(words, []rune(s))
+	}
+
+	changed := true
+	for changed {
+		dst := make([][]rune, len(words))
+		for i := range words {
+			dst[i] = make([]rune, len(words[i]))
+			copy(dst[i], words[i])
+		}
+		changed = false
+		for i := 0; i < len(words); i++ {
+			for j := 0; j < len(words[0]); j++ {
+				adjs := d11Adj(words, j, i)
+				if dst[i][j] == 'L' && adjs == 0 {
+					dst[i][j] = rune('#')
+					changed = true
+				} else if dst[i][j] == '#' && adjs >= 4 {
+					dst[i][j] = rune('L')
+					changed = true
+				}
+			}
+		}
+
+		words = dst
+	}
+
+	c := 0
+	for i := 0; i < len(words); i++ {
+		for j := 0; j < len(words[0]); j++ {
+			if words[i][j] == '#' {
+				c++
+			}
+		}
+	}
+
+	log.Print(c)
+}
+
+func d11Adj2(w [][]rune, x, y int) int {
+	c := 0
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			for k := 1; ; k++ {
+				if x+k*i < 0 || x+k*i >= len(w[0]) ||
+					y+k*j < 0 || y+k*j >= len(w) ||
+					(i == 0 && j == 0) {
+					break
+				}
+
+				if w[y+k*j][x+k*i] == '#' {
+					c++
+					break
+				} else if w[y+k*j][x+k*i] == 'L' {
+					break
+				}
+			}
+		}
+	}
+	return c
+}
+
+func d11_2() {
+	strings := readStrings()
+	words := make([][]rune, 0)
+	for _, s := range strings {
+		words = append(words, []rune(s))
+	}
+
+	changed := true
+	for changed {
+		dst := make([][]rune, len(words))
+		for i := range words {
+			dst[i] = make([]rune, len(words[i]))
+			copy(dst[i], words[i])
+		}
+		changed = false
+		for i := 0; i < len(words); i++ {
+			for j := 0; j < len(words[0]); j++ {
+				adjs := d11Adj2(words, j, i)
+				if dst[i][j] == 'L' && adjs == 0 {
+					dst[i][j] = rune('#')
+					changed = true
+				} else if dst[i][j] == '#' && adjs >= 5 {
+					dst[i][j] = rune('L')
+					changed = true
+				}
+			}
+		}
+
+		words = dst
+	}
+
+	c := 0
+	for i := 0; i < len(words); i++ {
+		for j := 0; j < len(words[0]); j++ {
+			if words[i][j] == '#' {
+				c++
+			}
+		}
+	}
+
+	log.Print(c)
 }
 
 func main() {
-	d9_2()
+	d11_2()
 }
