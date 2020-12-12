@@ -874,6 +874,104 @@ func d11_2() {
 	log.Print(c)
 }
 
+func d12Abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func d12_1() {
+	words := readStrings()
+	n, e, deg := 0, 0, 0
+	for _, w := range words {
+		i, err := strconv.Atoi(w[1:])
+		if err != nil {
+			log.Fatal("Failed parsing")
+		}
+		switch w[0] {
+		case 'N':
+			n += i
+		case 'S':
+			n -= i
+		case 'E':
+			e += i
+		case 'W':
+			e -= i
+		case 'L':
+			deg -= i
+		case 'R':
+			deg += i
+		case 'F':
+			{
+				deg = deg % 360
+				if deg < 0 {
+					deg += 360
+				}
+				switch deg {
+				case 0:
+					e += i
+				case 90:
+					n -= i
+				case 180:
+					e -= i
+				case 270:
+					n += i
+				}
+			}
+
+		}
+	}
+
+	log.Print(d12Abs(n) + d12Abs(e))
+}
+
+func d12Rotate(x, y, degrees int) (int, int) {
+	degrees = degrees % 360
+	if degrees < 0 {
+		degrees += 360
+	}
+
+	if degrees == 0 {
+		return x, y
+	}
+
+	return d12Rotate(y, -x, degrees-90)
+}
+
+func d12_2() {
+	words := readStrings()
+	n, e, wpN, wpE := 0, 0, 1, 10
+	for _, w := range words {
+		i, err := strconv.Atoi(w[1:])
+		if err != nil {
+			log.Fatal("Failed parsing")
+		}
+		switch w[0] {
+		case 'N':
+			wpN += i
+		case 'S':
+			wpN -= i
+		case 'E':
+			wpE += i
+		case 'W':
+			wpE -= i
+		case 'L':
+			wpE, wpN = d12Rotate(wpE, wpN, -i)
+		case 'R':
+			wpE, wpN = d12Rotate(wpE, wpN, i)
+		case 'F':
+			{
+				n += i * wpN
+				e += i * wpE
+			}
+
+		}
+	}
+
+	log.Print(d12Abs(n) + d12Abs(e))
+}
+
 func main() {
-	d11_2()
+	d12_2()
 }
