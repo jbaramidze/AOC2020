@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -972,6 +973,177 @@ func d12_2() {
 	log.Print(d12Abs(n) + d12Abs(e))
 }
 
+func d13_1() {
+	words := readStrings()
+	ts, e := strconv.Atoi(words[0])
+	if e != nil {
+		log.Fatal("Failed parsing")
+	}
+
+	idstrings := strings.Split(words[1], ",")
+	ids := []int{}
+	for _, id := range idstrings {
+		if id == "x" {
+			continue
+		}
+		idd, e := strconv.Atoi(id)
+		if e != nil {
+			log.Fatal("Failed parsing", id)
+		}
+		ids = append(ids, idd)
+	}
+
+	delay := math.MaxInt32
+	ans := -1
+	for _, id := range ids {
+		d := id - (ts % id)
+		if d < delay {
+			delay = d
+			ans = id * delay
+		}
+	}
+
+	log.Print(ans)
+}
+
+func d13_2() {
+	words := readStrings()
+	idstrings := strings.Split(words[1], ",")
+	ids := []int{}
+	for _, id := range idstrings {
+		if id == "x" {
+			ids = append(ids, -1)
+			continue
+		}
+		idd, e := strconv.Atoi(id)
+		if e != nil {
+			log.Fatal("Failed parsing", id)
+		}
+		ids = append(ids, idd)
+	}
+
+	ans := ids[0]
+	step := ids[0]
+	for i := 1; i < len(ids); i++ {
+		if ids[i] == -1 {
+			continue
+		}
+		for j := 1; ; j++ {
+			if (ans+step*j+i)%ids[i] == 0 {
+				ans, step = ans+step*j, step*ids[i]
+				break
+			}
+		}
+	}
+
+	log.Print(ans)
+}
+
+func d14_1() {
+	words := readStrings()
+	M := make(map[int]int)
+	mask0 := 0
+	mask1 := 1
+	for _, w := range words {
+		s := strings.Split(w, "=")
+		s[0] = strings.Trim(s[0], " ")
+		s[1] = strings.Trim(s[1], " ")
+		if s[0] == "mask" {
+			mask0 = 0
+			mask1 = 0
+			for _, t := range s[1] {
+				mask0 = mask0 * 2
+				mask1 = mask1 * 2
+				if t == 'X' {
+					continue
+				} else if t == '1' {
+					mask1++
+				} else if t == '0' {
+					mask0++
+				}
+			}
+			mask0 = ^mask0
+		} else {
+			addr, e := strconv.Atoi(s[0][4 : len(s[0])-1])
+			if e != nil {
+				log.Fatal("Parsing failed")
+			}
+			val, e := strconv.Atoi(s[1])
+			if e != nil {
+				log.Fatal("Parsing failed")
+			}
+
+			val = val | mask1
+			val = val & mask0
+			M[addr] = val
+		}
+	}
+
+	sum := 0
+	for _, v := range M {
+		sum += v
+	}
+
+	log.Print(sum)
+}
+
+func d14is1(addr int, index int) bool {
+	return ((1 << index) & addr) > 0
+}
+
+func d14f(M map[int]int, N int, pos int, mask string, val int, addr int) {
+	if pos == len(mask) {
+		M[N] = val
+		return
+	}
+
+	N *= 10
+	if mask[pos] == 'X' {
+		d14f(M, N, pos+1, mask, val, addr)
+		d14f(M, N+1, pos+1, mask, val, addr)
+	} else if mask[pos] == '0' {
+		if d14is1(addr, len(mask)-pos-1) {
+			d14f(M, N+1, pos+1, mask, val, addr)
+		} else {
+			d14f(M, N, pos+1, mask, val, addr)
+		}
+	} else {
+		d14f(M, N+1, pos+1, mask, val, addr)
+	}
+}
+
+func d14_2() {
+	words := readStrings()
+	M := make(map[int]int)
+	mask := ""
+	for _, w := range words {
+		s := strings.Split(w, "=")
+		s[0] = strings.Trim(s[0], " ")
+		s[1] = strings.Trim(s[1], " ")
+		if s[0] == "mask" {
+			mask = s[1]
+		} else {
+			addr, e := strconv.Atoi(s[0][4 : len(s[0])-1])
+			if e != nil {
+				log.Fatal("Parsing failed")
+			}
+			val, e := strconv.Atoi(s[1])
+			if e != nil {
+				log.Fatal("Parsing failed")
+			}
+
+			d14f(M, 0, 0, mask, val, addr)
+		}
+	}
+
+	sum := 0
+	for _, v := range M {
+		sum += v
+	}
+
+	log.Print(sum)
+}
+
 func main() {
-	d12_2()
+	d14_2()
 }
