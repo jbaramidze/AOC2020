@@ -1144,6 +1144,80 @@ func d14_2() {
 	log.Print(sum)
 }
 
+func d15_1() {
+	line := strings.Split(readStrings()[0], ",")
+	words := []int{}
+	for _, l := range line {
+		n, e := strconv.Atoi(l)
+		if e != nil {
+			log.Fatal("Parsing failure")
+		}
+		words = append(words, n)
+	}
+
+	M := make(map[int][]int)
+	M[0] = []int{}
+	for i, w := range words {
+		if _, ok := M[w]; !ok {
+			M[w] = []int{}
+		}
+
+		M[w] = append(M[w], i)
+	}
+
+	last := words[len(words)-1]
+	for i := len(M); i < 2020; i++ {
+		var n int
+		if len(M[last]) == 1 {
+			n = 0
+		} else {
+			indexes := M[last][len(M[last])-2:]
+			n = indexes[1] - indexes[0]
+		}
+		M[n] = append(M[n], i)
+		last = n
+	}
+
+	log.Print(last)
+}
+
+func d15_2() {
+	line := strings.Split(readStrings()[0], ",")
+	words := []int{}
+	for _, l := range line {
+		n, e := strconv.Atoi(l)
+		if e != nil {
+			log.Fatal("Parsing failure")
+		}
+		words = append(words, n)
+	}
+
+	M := make(map[int][]int)
+	M[0] = []int{}
+	for i, w := range words {
+		if _, ok := M[w]; !ok {
+			M[w] = []int{}
+		}
+
+		M[w] = append(M[w], i)
+	}
+
+	last := words[len(words)-1]
+	for i := len(M); i < 30000000; i++ {
+		var n int
+		if len(M[last]) == 1 {
+			n = 0
+		} else {
+			indexes := M[last][len(M[last])-2:]
+			n = indexes[1] - indexes[0]
+		}
+		M[n] = append(M[n], i)
+		last = n
+	}
+
+	log.Print(last)
+}
+
 func main() {
-	d14_2()
+	d15_2()
 }
