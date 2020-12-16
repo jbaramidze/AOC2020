@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -730,7 +731,6 @@ func d10_1() {
 	log.Print(d[1], d[2], d[3]+1)
 }
 
-//
 func d10_2() {
 	words := readWords()
 	sort.Ints(words)
@@ -1218,6 +1218,167 @@ func d15_2() {
 	log.Print(last)
 }
 
+func d16_1() {
+	words := readStrings()
+	state := 0
+	result := 0
+	M := [][]int{}
+	for i := 0; i < len(words); i++ {
+		if len(words[i]) == 0 {
+			state++
+			i++
+		} else if state == 0 {
+			var rgx = regexp.MustCompile(`(^[^:]*): ([\d]*)-([\d]*) or ([\d]*)-([\d]*)`)
+			match := rgx.FindStringSubmatch(words[i])
+			log.Print(match[1])
+			a, _ := strconv.Atoi(match[2])
+			b, _ := strconv.Atoi(match[3])
+			c, _ := strconv.Atoi(match[4])
+			d, _ := strconv.Atoi(match[5])
+			M = append(M, []int{a, b})
+			M = append(M, []int{c, d})
+		} else if state == 2 {
+			fields := strings.Split(words[i], ",")
+			for _, f := range fields {
+				i, e := strconv.Atoi(f)
+				if e != nil {
+					log.Fatal("Failed parsing")
+				}
+				found := false
+				for _, m := range M {
+					if m[0] <= i && i <= m[1] {
+						found = true
+						break
+					}
+				}
+				if found == false {
+					result += i
+				}
+			}
+		}
+	}
+
+	log.Print(result)
+}
+
+type d16allowedRanges struct {
+	name   string
+	ranges [][]int
+}
+
+func d16f(perm []int, cache map[int][]int, permSet map[int]bool) []int {
+	if len(perm) == len(cache) {
+		return perm
+	}
+
+	idx := len(perm)
+
+	for _, i := range cache[idx] {
+		if permSet[i] {
+			continue
+		}
+
+		permSet[i] = true
+		resp := d16f(append(perm, i), cache, permSet)
+		permSet[i] = false
+		if len(resp) > 0 {
+			return resp
+		}
+	}
+
+	return []int{}
+}
+
+func d16_2() {
+	words := readStrings()
+	state := 0
+	M := []d16allowedRanges{}
+	validTickets := [][]int{}
+	for i := 0; i < len(words); i++ {
+		if len(words[i]) == 0 {
+			state++
+			i++
+		} else if state == 0 {
+			var rgx = regexp.MustCompile(`(^[^:]*): ([\d]*)-([\d]*) or ([\d]*)-([\d]*)`)
+			match := rgx.FindStringSubmatch(words[i])
+			a, _ := strconv.Atoi(match[2])
+			b, _ := strconv.Atoi(match[3])
+			c, _ := strconv.Atoi(match[4])
+			d, _ := strconv.Atoi(match[5])
+			M = append(M, d16allowedRanges{name: match[1], ranges: [][]int{{a, b}, {c, d}}})
+		} else if state == 1 {
+			fields := strings.Split(words[i], ",")
+			fieldInts := []int{}
+			for _, f := range fields {
+				i, e := strconv.Atoi(f)
+				if e != nil {
+					log.Fatal("Failed parsing")
+				}
+				fieldInts = append(fieldInts, i)
+			}
+			validTickets = append(validTickets, fieldInts)
+		} else if state == 2 {
+			fields := strings.Split(words[i], ",")
+			fieldInts := []int{}
+			valid := true
+			for _, f := range fields {
+				i, e := strconv.Atoi(f)
+				if e != nil {
+					log.Fatal("Failed parsing")
+				}
+				found := false
+				for _, m := range M {
+					if (m.ranges[0][0] <= i && i <= m.ranges[0][1]) ||
+						(m.ranges[1][0] <= i && i <= m.ranges[1][1]) {
+						found = true
+						break
+					}
+				}
+				if found == false {
+					valid = false
+					break
+				}
+				fieldInts = append(fieldInts, i)
+			}
+			if valid == true {
+				validTickets = append(validTickets, fieldInts)
+			}
+		}
+	}
+
+	// allowedPositions[i] = allowed fields on position i
+	allowedPositions := map[int][]int{}
+
+	for i := 0; i < len(M); i++ {
+		allowedPositions[i] = []int{}
+		for j := 0; j < len(M); j++ {
+			valid := true
+			for _, t := range validTickets {
+				if (t[i] < M[j].ranges[0][0] || t[i] > M[j].ranges[0][1]) &&
+					(t[i] < M[j].ranges[1][0] || t[i] > M[j].ranges[1][1]) {
+					valid = false
+					break
+				}
+			}
+
+			if valid {
+				allowedPositions[i] = append(allowedPositions[i], j)
+			}
+		}
+	}
+
+	result := d16f([]int{}, allowedPositions, map[int]bool{})
+	p := 1
+	for i, r := range result {
+		if strings.HasPrefix(M[r].name, "departure") {
+			p = p * validTickets[0][i]
+		}
+	}
+
+	log.Print(p)
+
+}
+
 func main() {
-	d15_2()
+	d16_2()
 }
