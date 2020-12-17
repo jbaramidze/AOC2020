@@ -1376,9 +1376,183 @@ func d16_2() {
 	}
 
 	log.Print(p)
+}
+
+func d17getNeighbors(M [][][]bool, z, x, y int) int {
+	n := 0
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			for k := -1; k <= 1; k++ {
+				if i == 0 && j == 0 && k == 0 {
+					continue
+				}
+
+				if i+z < 0 || j+x < 0 || k+y < 0 {
+					continue
+				}
+				if i+z >= len(M) || j+x >= len(M) || k+y >= len(M) {
+					continue
+				}
+
+				if M[i+z][j+x][k+y] {
+					n++
+				}
+
+			}
+		}
+	}
+
+	return n
+}
+
+func d17_1() {
+	words := readStrings()
+	offset := 30
+	// z, y, x
+	M1 := make([][][]bool, 2*offset+1)
+	M2 := make([][][]bool, 2*offset+1)
+	for i := 0; i < 2*offset+1; i++ {
+		M1[i] = make([][]bool, 2*offset+1)
+		M2[i] = make([][]bool, 2*offset+1)
+		for j := 0; j < 2*offset+1; j++ {
+			M1[i][j] = make([]bool, 2*offset+1)
+			M2[i][j] = make([]bool, 2*offset+1)
+		}
+	}
+
+	curr := M1
+	prev := M2
+
+	for i := 0; i < len(words); i++ {
+		for j := 0; j < len(words[0]); j++ {
+			curr[0+offset][i+offset][j+offset] = words[i][j] == '#'
+		}
+	}
+
+	totalActive := -1
+	for c := 0; c < 6; c++ {
+		curr, prev = prev, curr
+		totalActive = 0
+		for i := 0; i < 2*offset+1; i++ {
+			for j := 0; j < 2*offset+1; j++ {
+				for k := 0; k < 2*offset+1; k++ {
+					active := prev[i][j][k]
+					neighbors := d17getNeighbors(prev, i, j, k)
+					if active {
+						if neighbors == 2 || neighbors == 3 {
+							curr[i][j][k] = true
+							totalActive++
+						} else {
+							curr[i][j][k] = false
+						}
+					} else {
+						if neighbors == 3 {
+							curr[i][j][k] = true
+							totalActive++
+						} else {
+							curr[i][j][k] = false
+						}
+					}
+				}
+			}
+		}
+	}
+
+	log.Print(totalActive)
+}
+
+func d172getNeighbors(M [][][][]bool, w, z, x, y int) int {
+	n := 0
+	for t := -1; t <= 1; t++ {
+		for i := -1; i <= 1; i++ {
+			for j := -1; j <= 1; j++ {
+				for k := -1; k <= 1; k++ {
+					if t == 0 && i == 0 && j == 0 && k == 0 {
+						continue
+					}
+
+					if t+w < 0 || i+z < 0 || j+x < 0 || k+y < 0 {
+						continue
+					}
+					if t+w >= len(M) || i+z >= len(M) || j+x >= len(M) || k+y >= len(M) {
+						continue
+					}
+
+					if M[t+w][i+z][j+x][k+y] {
+						n++
+					}
+
+				}
+			}
+		}
+	}
+
+	return n
+}
+
+func d17_2() {
+	words := readStrings()
+	offset := 20
+	// w, z, y, x
+	M1 := make([][][][]bool, 2*offset+1)
+	M2 := make([][][][]bool, 2*offset+1)
+	for i := 0; i < 2*offset+1; i++ {
+		M1[i] = make([][][]bool, 2*offset+1)
+		M2[i] = make([][][]bool, 2*offset+1)
+		for j := 0; j < 2*offset+1; j++ {
+			M1[i][j] = make([][]bool, 2*offset+1)
+			M2[i][j] = make([][]bool, 2*offset+1)
+			for t := 0; t < 2*offset+1; t++ {
+				M1[i][j][t] = make([]bool, 2*offset+1)
+				M2[i][j][t] = make([]bool, 2*offset+1)
+			}
+		}
+	}
+
+	curr := M1
+	prev := M2
+
+	for i := 0; i < len(words); i++ {
+		for j := 0; j < len(words[0]); j++ {
+			curr[0+offset][0+offset][i+offset][j+offset] = words[i][j] == '#'
+		}
+	}
+
+	totalActive := -1
+	for c := 0; c < 6; c++ {
+		curr, prev = prev, curr
+		totalActive = 0
+		for t := 0; t < 2*offset+1; t++ {
+			for i := 0; i < 2*offset+1; i++ {
+				for j := 0; j < 2*offset+1; j++ {
+					for k := 0; k < 2*offset+1; k++ {
+						active := prev[t][i][j][k]
+						neighbors := d172getNeighbors(prev, t, i, j, k)
+						if active {
+							if neighbors == 2 || neighbors == 3 {
+								curr[t][i][j][k] = true
+								totalActive++
+							} else {
+								curr[t][i][j][k] = false
+							}
+						} else {
+							if neighbors == 3 {
+								curr[t][i][j][k] = true
+								totalActive++
+							} else {
+								curr[t][i][j][k] = false
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	log.Print(totalActive)
 
 }
 
 func main() {
-	d16_2()
+	d17_2()
 }
