@@ -1550,9 +1550,188 @@ func d17_2() {
 	}
 
 	log.Print(totalActive)
+}
 
+func d18calc(fields []string, start int) (result int, i int) {
+	r := 0
+	if fields[start] == "(" {
+		p, j := d18calc(fields, start+1)
+		r = p
+		start = j + 1
+	} else {
+		p, e := strconv.Atoi(fields[start])
+		if e != nil {
+			log.Fatal("FAILED PARSING")
+		}
+		r = p
+		start++
+	}
+	for i = start; i < len(fields); i++ {
+		if fields[i] == ")" {
+			return r, i
+		} else if fields[i] == "+" || fields[i] == "*" {
+			if fields[i+1] == "(" {
+				p, j := d18calc(fields, i+2)
+				if fields[i] == "+" {
+					r += p
+				} else {
+					r *= p
+				}
+				i = j
+			} else {
+				p, e := strconv.Atoi(fields[i+1])
+				if e != nil {
+					log.Fatal("Failed parsing")
+				}
+				if fields[i] == "+" {
+					r += p
+				} else {
+					r *= p
+				}
+				i++
+			}
+		}
+	}
+
+	return r, i
+}
+
+func d18_1() {
+	words := readStrings()
+	sum := 0
+	for _, w := range words {
+		fields := []string{}
+		for _, i := range w {
+			switch i {
+			case ' ':
+			case '*':
+				fields = append(fields, "*")
+			case '+':
+				fields = append(fields, "+")
+			case '(':
+				fields = append(fields, "(")
+			case ')':
+				fields = append(fields, ")")
+			default:
+				if len(fields) == 0 {
+					fields = append(fields, string(i))
+				} else {
+					if fields[len(fields)-1][0] >= '0' && fields[len(fields)-1][0] <= '9' {
+						fields[len(fields)-1] += string(i)
+					} else {
+						fields = append(fields, string(i))
+					}
+				}
+			}
+		}
+
+		s, _ := d18calc(fields, 0)
+		sum += s
+
+	}
+	log.Print(sum)
+}
+
+func d18eval(r []string) int {
+	for i := 1; i < len(r)-1; i++ {
+		a, e1 := strconv.Atoi(r[i-1])
+		b, e2 := strconv.Atoi(r[i+1])
+		if r[i] == "+" && e1 == nil && e2 == nil {
+			return d18eval(append(append(r[:i-1], strconv.Itoa(a+b)), r[i+2:]...))
+		}
+	}
+
+	// Evaluate multiplication
+	for i := 1; i < len(r)-1; i++ {
+		a, e1 := strconv.Atoi(r[i-1])
+		b, e2 := strconv.Atoi(r[i+1])
+		if r[i] == "*" && e1 == nil && e2 == nil {
+			return d18eval(append(append(r[:i-1], strconv.Itoa(a*b)), r[i+2:]...))
+		}
+	}
+
+	if len(r) == 1 {
+		a, e := strconv.Atoi(r[0])
+		if e != nil {
+			log.Fatal("FAAILED PARSNG")
+		}
+
+		return a
+	}
+
+	return -1
+}
+
+func d18calc2(fields []string, start int) (result int, i int) {
+	r := []string{}
+	if fields[start] == "(" {
+		p, j := d18calc2(fields, start+1)
+		r = append(r, strconv.Itoa(p))
+		start = j + 1
+	} else {
+		p, e := strconv.Atoi(fields[start])
+		if e != nil {
+			log.Fatal("FFAILED PARSING", fields, start)
+		}
+		r = append(r, strconv.Itoa(p))
+		start++
+	}
+	for i = start; i < len(fields); i++ {
+		if fields[i] == ")" {
+			return d18eval(r), i
+		} else if fields[i] == "+" || fields[i] == "*" {
+			r = append(r, fields[i])
+		} else if fields[i] == "(" {
+			p, j := d18calc2(fields, i+1)
+			r = append(r, strconv.Itoa(p))
+			i = j
+		} else {
+			p, e := strconv.Atoi(fields[i])
+			if e != nil {
+				log.Fatal("FFFAILED PARSING")
+			}
+			r = append(r, strconv.Itoa(p))
+		}
+	}
+
+	return d18eval(r), i
+}
+
+func d18_2() {
+	words := readStrings()
+	sum := 0
+	for _, w := range words {
+		fields := []string{}
+		for _, i := range w {
+			switch i {
+			case ' ':
+			case '*':
+				fields = append(fields, "*")
+			case '+':
+				fields = append(fields, "+")
+			case '(':
+				fields = append(fields, "(")
+			case ')':
+				fields = append(fields, ")")
+			default:
+				if len(fields) == 0 {
+					fields = append(fields, string(i))
+				} else {
+					if fields[len(fields)-1][0] >= '0' && fields[len(fields)-1][0] <= '9' {
+						fields[len(fields)-1] += string(i)
+					} else {
+						fields = append(fields, string(i))
+					}
+				}
+			}
+		}
+
+		s, _ := d18calc2(fields, 0)
+		sum += s
+	}
+	log.Print(sum)
 }
 
 func main() {
-	d17_2()
+	d18_2()
 }
