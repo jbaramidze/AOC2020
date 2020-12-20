@@ -1732,6 +1732,215 @@ func d18_2() {
 	log.Print(sum)
 }
 
+type d19strategy interface {
+	consume(m map[int]d19strategy, a string) (bool, int)
+	consume2(m map[int]d19strategy, a string) (bool, []int)
+}
+
+type d19charStrategy struct {
+	match string
+}
+
+func d19tryCreatingCharStrategy(word string) (int, *d19charStrategy) {
+	r, _ := regexp.Compile("^([0-9]*): \"([a-zaA-Z])\"$")
+	result := r.FindStringSubmatch(word)
+	if len(result) == 0 {
+		return 0, nil
+	}
+
+	i, e := strconv.Atoi(result[1])
+	if e != nil {
+		log.Fatal("FAILED PARSING")
+	}
+
+	return i, &d19charStrategy{match: result[2]}
+}
+
+func (c d19charStrategy) consume(m map[int]d19strategy, a string) (bool, int) {
+	if len(a) == 0 || a[0] != c.match[0] {
+		return false, 0
+	}
+
+	return true, 1
+}
+
+func (c d19charStrategy) consume2(m map[int]d19strategy, a string) (bool, []int) {
+	if len(a) == 0 || a[0] != c.match[0] {
+		return false, []int{}
+	}
+
+	return true, []int{1}
+}
+
+type d19matcherStrategy struct {
+	rules [][]int
+}
+
+func (c d19matcherStrategy) consume(m map[int]d19strategy, a string) (bool, int) {
+	for _, rules := range c.rules {
+		consumed := 0
+		valid := true
+		for _, rule := range rules {
+			matched, cons := m[rule].consume(m, a[consumed:])
+			if matched == false {
+				valid = false
+				break
+			}
+			consumed += cons
+		}
+
+		if valid == true {
+			return true, consumed
+		}
+	}
+
+	return false, 0
+}
+
+func (c d19matcherStrategy) consume2(m map[int]d19strategy, a string) (bool, []int) {
+	if len(a) == 0 {
+		return false, []int{}
+	}
+	consumed := []int{}
+	for _, rules := range c.rules {
+		currConsumeds := []int{0}
+		valid := true
+		for _, rule := range rules {
+			someConsumedMatched := false
+			matchedCons := []int{}
+			for _, currConsumed := range currConsumeds {
+				matched, cons := m[rule].consume2(m, a[currConsumed:])
+				if matched == false {
+					continue
+				}
+				someConsumedMatched = true
+				for _, i := range cons {
+					matchedCons = append(matchedCons, i+currConsumed)
+				}
+			}
+
+			if !someConsumedMatched {
+				valid = false
+				break
+			}
+
+			newCurrConsumeds := []int{}
+			for _, j := range matchedCons {
+				newCurrConsumeds = append(newCurrConsumeds, j)
+			}
+
+			currConsumeds = newCurrConsumeds
+		}
+
+		if valid == true {
+			consumed = append(consumed, currConsumeds...)
+		}
+	}
+
+	if len(consumed) == 0 {
+		return false, []int{}
+	}
+
+	return true, consumed
+}
+
+func d19tryCreatingMatcherStrategy(word string) (int, *d19matcherStrategy) {
+	r, _ := regexp.Compile("^([0-9]*): ([0-9 |]*)$")
+	result := r.FindStringSubmatch(word)
+	if len(result) == 0 {
+		return 0, nil
+	}
+
+	rules := [][]int{{}}
+	t := 0
+	for _, i := range result[2] {
+		if i == ' ' {
+			if t == 0 {
+				continue
+			}
+			rules[len(rules)-1] = append(rules[len(rules)-1], t)
+			t = 0
+		} else if i == '|' {
+			rules = append(rules, []int{})
+		} else {
+			t = t*10 + int(i-'0')
+		}
+	}
+	rules[len(rules)-1] = append(rules[len(rules)-1], t)
+
+	i, e := strconv.Atoi(result[1])
+	if e != nil {
+		log.Fatal("FAILED PARSING")
+	}
+
+	return i, &d19matcherStrategy{rules}
+}
+
+func d19_1() {
+	words := readStrings()
+	mode := 0
+	ruleMap := make(map[int]d19strategy)
+	total := 0
+	for _, w := range words {
+		if len(w) == 0 {
+			mode = 1
+			continue
+		}
+
+		if mode == 0 {
+			idx, charStrategy := d19tryCreatingCharStrategy(w)
+			if charStrategy != nil {
+				ruleMap[idx] = charStrategy
+			}
+
+			idx, matcherStrategy := d19tryCreatingMatcherStrategy(w)
+			if matcherStrategy != nil {
+				ruleMap[idx] = matcherStrategy
+			}
+		} else {
+			matched, count := ruleMap[0].consume(ruleMap, w)
+			if matched == true && count == len(w) {
+				total++
+			}
+		}
+	}
+	log.Print(total)
+}
+
+func d19_2() {
+	words := readStrings()
+	mode := 0
+	ruleMap := make(map[int]d19strategy)
+	total := 0
+	for _, w := range words {
+		if len(w) == 0 {
+			mode = 1
+			continue
+		}
+
+		if mode == 0 {
+			idx, charStrategy := d19tryCreatingCharStrategy(w)
+			if charStrategy != nil {
+				ruleMap[idx] = charStrategy
+			}
+
+			idx, matcherStrategy := d19tryCreatingMatcherStrategy(w)
+			if matcherStrategy != nil {
+				ruleMap[idx] = matcherStrategy
+			}
+		} else {
+			matched, count := ruleMap[0].consume2(ruleMap, w)
+			for _, c := range count {
+				if matched == true && c == len(w) {
+					total++
+					break
+				}
+			}
+		}
+	}
+	log.Print(total)
+}
+
 func main() {
-	d18_2()
+	d19_2()
 }
